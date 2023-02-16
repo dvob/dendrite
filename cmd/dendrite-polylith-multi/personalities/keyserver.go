@@ -31,6 +31,6 @@ func KeyServer(base *basepkg.BaseDendrite, cfg *config.Dendrite) {
 	base.SetupAndServeHTTP(
 		base.Cfg.KeyServer.InternalAPI.Listen, // internal listener
 		basepkg.NoListener,                    // external listener
-		nil, nil,
+		nil,
 	)
 }

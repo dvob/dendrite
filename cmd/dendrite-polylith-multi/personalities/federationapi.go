@@ -39,6 +39,6 @@ func FederationAPI(base *basepkg.BaseDendrite, cfg *config.Dendrite) {
 	base.SetupAndServeHTTP(
 		base.Cfg.FederationAPI.InternalAPI.Listen,
 		base.Cfg.FederationAPI.ExternalAPI.Listen,
-		nil, nil,
+		nil,
 	)
 }

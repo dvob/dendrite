@@ -31,6 +31,6 @@ func Appservice(base *base.BaseDendrite, cfg *config.Dendrite) {
 	base.SetupAndServeHTTP(
 		base.Cfg.AppServiceAPI.InternalAPI.Listen, // internal listener
 		basepkg.NoListener,                        // external listener
-		nil, nil,
+		nil,
 	)
 }

@@ -31,6 +31,6 @@ func RoomServer(base *basepkg.BaseDendrite, cfg *config.Dendrite) {
 	base.SetupAndServeHTTP(
 		base.Cfg.RoomServer.InternalAPI.Listen, // internal listener
 		basepkg.NoListener,                     // external listener
-		nil, nil,
+		nil,
 	)
 }

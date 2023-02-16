@@ -15,10 +15,14 @@
 package main
 
 import (
+	"crypto/tls"
 	"flag"
+	"fmt"
 	"os"
+	"strings"
 
 	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/matrix-org/dendrite/appservice"
 	"github.com/matrix-org/dendrite/federationapi"
@@ -39,6 +43,8 @@ var (
 	apiBindAddr    = flag.String("api-bind-address", "localhost:18008", "The HTTP listening port for the internal HTTP APIs (if -api is enabled)")
 	certFile       = flag.String("tls-cert", "", "The PEM formatted X509 certificate to use for TLS")
 	keyFile        = flag.String("tls-key", "", "The PEM private key to use for TLS")
+	tlsAutoHosts   = flag.String("tls-auto-hosts", "", "Get certificates automatically from Let's Encrypt for the specified hosts using the tls-alpn-01 challange. Hosts are a comma-seperated list.")
+	tlsAutoCertDir = flag.String("tls-auto-cert-dir", "cert-dir", "Cache directory for certificates obtained from Let's Encrpyt.")
 	enableHTTPAPIs = flag.Bool("api", false, "Use HTTP APIs instead of short-circuiting (warning: exposes API endpoints!)")
 	traceInternal  = os.Getenv("DENDRITE_TRACE_INTERNAL") == "1"
 )
@@ -148,6 +154,28 @@ func main() {
 	}
 	monolith.AddAllPublicRoutes(base)
 
+	var tlsConfig *tls.Config
+	if *certFile != "" && *keyFile != "" {
+		cert, err := tls.LoadX509KeyPair(*certFile, *keyFile)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		tlsConfig = &tls.Config{
+			Certificates: []tls.Certificate{
+				cert,
+			},
+		}
+	} else if *tlsAutoHosts != "" {
+		hosts := strings.Split(*tlsAutoHosts, ",")
+		manager := autocert.Manager{
+			Cache:      autocert.DirCache(*tlsAutoCertDir),
+			Prompt:     autocert.AcceptTOS,
+			HostPolicy: autocert.HostWhitelist(hosts...),
+		}
+		tlsConfig = manager.TLSConfig()
+	}
+
 	if len(base.Cfg.MSCs.MSCs) > 0 {
 		if err := mscs.Enable(base, &monolith); err != nil {
 			logrus.WithError(err).Fatalf("Failed to enable MSCs")
@@ -159,16 +187,16 @@ func main() {
 		base.SetupAndServeHTTP(
 			httpAPIAddr, // internal API
 			httpAddr,    // external API
-			nil, nil,    // TLS settings
+			nil,         // TLS settings
 		)
 	}()
 	// Handle HTTPS if certificate and key are provided
-	if *certFile != "" && *keyFile != "" {
+	if tlsConfig != nil {
 		go func() {
 			base.SetupAndServeHTTP(
 				basepkg.NoListener, // internal API
 				httpsAddr,          // external API
-				certFile, keyFile,  // TLS settings
+				tlsConfig,          // TLS settings
 			)
 		}()
 	}

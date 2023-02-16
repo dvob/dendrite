@@ -31,6 +31,6 @@ func MediaAPI(base *basepkg.BaseDendrite, cfg *config.Dendrite) {
 	base.SetupAndServeHTTP(
 		base.Cfg.MediaAPI.InternalAPI.Listen,
 		base.Cfg.MediaAPI.ExternalAPI.Listen,
-		nil, nil,
+		nil,
 	)
 }

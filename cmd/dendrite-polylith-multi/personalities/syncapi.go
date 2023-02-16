@@ -34,6 +34,6 @@ func SyncAPI(base *basepkg.BaseDendrite, cfg *config.Dendrite) {
 	base.SetupAndServeHTTP(
 		base.Cfg.SyncAPI.InternalAPI.Listen,
 		base.Cfg.SyncAPI.ExternalAPI.Listen,
-		nil, nil,
+		nil,
 	)
 }

@@ -39,6 +39,6 @@ func ClientAPI(base *basepkg.BaseDendrite, cfg *config.Dendrite) {
 	base.SetupAndServeHTTP(
 		base.Cfg.ClientAPI.InternalAPI.Listen,
 		base.Cfg.ClientAPI.ExternalAPI.Listen,
-		nil, nil,
+		nil,
 	)
 }
